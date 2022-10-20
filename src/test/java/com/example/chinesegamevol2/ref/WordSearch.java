@@ -1,5 +1,7 @@
 package com.example.chinesegamevol2.ref;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 79
  * Given a 2D board and a word, find if the word exists in the grid.
@@ -20,6 +22,7 @@ package com.example.chinesegamevol2.ref;
  * Given word = "SEE", return true.
  * Given word = "ABCB", return false.
  */
+@Slf4j
 public class WordSearch {
     //对应不同方向遍历-->向右、向下、向左、向上
     static  int[][] directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
@@ -53,7 +56,7 @@ public class WordSearch {
         boolean flag = dfs(board, i, j+1, word, p+1) || dfs(board, i, j-1, word, p+1)
                 || dfs(board, i+1, j, word, p+1) || dfs(board, i-1, j, word, p+1);
         if(flag){
-            System.out.println(String.format("temp:%s,i:%s,j:%s",temp,i,j));
+            log.info(String.format("temp:%s,i:%s,j:%s",temp,i,j));
         }
         board[i][j] = temp;
         return flag;

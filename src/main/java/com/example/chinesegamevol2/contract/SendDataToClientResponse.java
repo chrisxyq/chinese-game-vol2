@@ -15,12 +15,12 @@ import java.util.List;
 public class SendDataToClientResponse {
     /**
      * 用于客户端接收的元素列表
-     * 客户端棋盘存放的是StrokeNode
+     * 客户端棋盘存放的是Stroke
      */
-    List<StrokeNode> strokeNodeList ;
+    List<String> strokeList ;
     /**
      * 待匹配的目标中文列表
-     * String[]为解析后的中文，每个元素为中文的偏旁
+     * String[]为解析后的中文，每个元素为中文的偏旁部首
      */
     List<String[]>   wordList;
 }

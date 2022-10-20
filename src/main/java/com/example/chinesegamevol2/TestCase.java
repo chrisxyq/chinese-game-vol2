@@ -3,13 +3,12 @@ package com.example.chinesegamevol2;
 import com.example.chinesegamevol2.client.GameClient;
 import com.example.chinesegamevol2.client.dto.MatchResult;
 import com.example.chinesegamevol2.contract.SendDataToClientResponse;
-import com.example.chinesegamevol2.contract.StrokeNode;
 import com.example.chinesegamevol2.server.GameServer;
+import com.example.chinesegamevol2.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.springframework.util.StringUtils;
 
-import java.util.LinkedList;
 import java.util.List;
 
 @Slf4j
@@ -21,10 +20,8 @@ public class TestCase {
      */
     @Test
     public void test1() throws Exception {
-        List<String> chineseList = new LinkedList<>();
-        chineseList.add("双");
         int[][] posList = {{2, 1}, {2, 0}};
-        testProcedure(chineseList, posList);
+        testProcedure("双", posList);
     }
 
     /**
@@ -34,10 +31,8 @@ public class TestCase {
      */
     @Test
     public void test2() throws Exception {
-        List<String> chineseList = new LinkedList<>();
-        chineseList.add("夸");
         int[][] posList = {{2, 1}, {1, 1}};
-        testProcedure(chineseList, posList);
+        testProcedure("夸", posList);
     }
 
     /**
@@ -47,10 +42,8 @@ public class TestCase {
      */
     @Test
     public void test3() throws Exception {
-        List<String> chineseList = new LinkedList<>();
-        chineseList.add("霸");
         int[][] posList = {{2, 1}, {2, 0}, {1, 0}};
-        testProcedure(chineseList, posList);
+        testProcedure("霸", posList);
     }
 
     /**
@@ -60,11 +53,8 @@ public class TestCase {
      */
     @Test
     public void test4() throws Exception {
-        List<String> chineseList = new LinkedList<>();
-        chineseList.add("双");
-        chineseList.add("霸");
         int[][] posList = {{2, 1}, {2, 0}, {1, 0}, {2, 1}, {2, 0}};
-        testProcedure(chineseList, posList);
+        testProcedure("双霸", posList);
     }
 
     /**
@@ -72,19 +62,19 @@ public class TestCase {
      * @param posList:模拟发给客户端的每个元素的放置地址
      * @throws Exception
      */
-    public void testProcedure(List<String> chineseList, int[][] posList) throws Exception {
+    public void testProcedure(String chineseList, int[][] posList) throws Exception {
         GameServer server = new GameServer();
         GameClient client = new GameClient(3, 3);
         //step1、服务端输出接口，服务端下发数据结构给前端
         SendDataToClientResponse response = server.sendDataToClient(chineseList);
-        log.info(String.format("服务端下发数据结构给客户端:%s", response));
+        log.info(String.format("服务端下发数据结构给客户端:%s", JsonUtils.toJson(response)));
         //step2、客户端接收服务端发送数据，并合并汉字
         List<String[]> wordList = response.getWordList();
-        List<StrokeNode> strokeNodeList = response.getStrokeNodeList();
-        for (int i = 0; i < strokeNodeList.size(); i++) {
+        List<String> strokeList = response.getStrokeList();
+        for (int i = 0; i < strokeList.size(); i++) {
             for (String[] word : wordList) {
                 MatchResult matchResult = client.receiveDataFromServer(
-                        posList[i][0], posList[i][1], word, 0, strokeNodeList.get(i));
+                        posList[i][0], posList[i][1], word, 0, strokeList.get(i));
                 if (matchResult != null && StringUtils.hasLength(matchResult.getPathStr())) {
                     //step3、服务端校验客户端的匹配结果
                     boolean isValid = server.validateMatchResult(matchResult.getPathStr());

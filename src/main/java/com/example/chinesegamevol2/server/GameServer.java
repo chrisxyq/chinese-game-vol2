@@ -1,14 +1,12 @@
 package com.example.chinesegamevol2.server;
 
-import com.example.chinesegamevol2.contract.StrokeNode;
-import com.example.chinesegamevol2.server.dto.ParsedNode;
 import com.example.chinesegamevol2.contract.SendDataToClientResponse;
-import com.example.chinesegamevol2.parseservice.service.ChineseParser;
+import com.example.chinesegamevol2.utils.ChineseParser;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Q、服务端保存汉字和偏旁的数据结构，并如何验证汉字组合正确？请用编码实现
@@ -20,21 +18,29 @@ import java.util.Map;
  * 2、 限定一个字 最多只能分三块， 上中下， 左中右，或者如图所示 蠢字 上下下， 或者下上上，还有霸上左下右下等。形式不限。
  * 3、汉字示例：双、夸、蠢、从、鹏、朋、森、林、好、孙、骑、霸
  * 4、并非是需要罗列所有汉字，而是总结出汉字拆解和合并的规律
- * todo 给出前端要展示的偏旁部首
+ * 给出前端要展示的偏旁部首
  */
+@Slf4j
 public class GameServer {
     /**
      * 服务端保存汉字和偏旁的数据结构
+     * key为汉字
+     * 值为偏旁列表
      */
-    private List<String>            chineseList;
-    private Map<String, ParsedNode> parsedChineseMap;
+    private Map<String, String[]> chineseToStrokeMap;
+    /**
+     * 服务端保存汉字和偏旁的数据结构
+     * key为偏旁列表
+     * 值为汉字
+     */
+    private Map<String, String>   strokeToChineseMap;
 
-    public List<String> getChineseList() {
-        return chineseList;
+    public Map<String, String[]> getChineseToStrokeMap() {
+        return chineseToStrokeMap;
     }
 
-    public Map<String, ParsedNode> getParsedChineseMap() {
-        return parsedChineseMap;
+    public Map<String, String> getStrokeToChineseMap() {
+        return strokeToChineseMap;
     }
 
     /**
@@ -44,19 +50,19 @@ public class GameServer {
      * @return
      * @throws Exception
      */
-    public SendDataToClientResponse sendDataToClient(List<String> chineseList) throws Exception {
-        this.chineseList = chineseList;
-        this.parsedChineseMap = ChineseParser.parseChineseList(chineseList);
-        List<StrokeNode> strokeNodeList = new ArrayList<>();
+    public SendDataToClientResponse sendDataToClient(String chineseList) throws Exception {
+        Pair<Map<String, String[]>, Map<String, String>> pair = ChineseParser.parseChineseList(chineseList);
+        this.chineseToStrokeMap = pair.getLeft();
+        this.strokeToChineseMap = pair.getRight();
+        List<String> strokeList = new ArrayList<>();
         List<String[]> wordList = new ArrayList<>();
-        System.out.println(parsedChineseMap);
-        for (String key : this.parsedChineseMap.keySet()) {
-            ParsedNode parsedNode = this.parsedChineseMap.get(key);
-            strokeNodeList.addAll(parsedNode.getStrokeNodeList());
-            wordList.add(parsedNode.getWord());
+        for (String key : this.chineseToStrokeMap.keySet()) {
+            String[] subList = this.chineseToStrokeMap.get(key);
+            strokeList.addAll(Arrays.asList(subList));
+            wordList.add(subList);
         }
-        Collections.reverse(strokeNodeList);
-        return new SendDataToClientResponse(strokeNodeList, wordList);
+        Collections.reverse(strokeList);
+        return new SendDataToClientResponse(strokeList, wordList);
     }
 
     /**
@@ -67,8 +73,9 @@ public class GameServer {
      * @return
      */
     public boolean validateMatchResult(String pathStr) {
-        boolean res = this.parsedChineseMap.containsKey(pathStr);
-        System.out.println(String.format("服务端校验匹配结果为:%s，匹配字符为：%s", res, pathStr));
+        String chinese = this.strokeToChineseMap.getOrDefault(pathStr, null);
+        boolean res = StringUtils.isNotEmpty(chinese);
+        log.info(String.format("服务端校验匹配结果为:%s，匹配字符为：%s", res, chinese));
         return res;
     }
 }

@@ -11,7 +11,16 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PathNode {
+    /**
+     * 节点的行
+     */
     private int row;
+    /**
+     * 节点的列
+     */
     private int column;
-    private String str;
+    /**
+     * 节点的偏旁部首
+     */
+    private String stroke;
 }
