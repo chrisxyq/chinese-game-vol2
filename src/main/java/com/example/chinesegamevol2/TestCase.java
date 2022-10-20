@@ -60,6 +60,11 @@ public class TestCase {
     }
 
     /**
+     * 假设服务端有k个中文字
+     * 客户端的棋盘格为：m*n
+     * 客户端每次进行中文匹配的时间复杂度：m*n*k
+     * 服务端校验的时间复杂度：o(1)
+     *
      * @param chineseList:服务端存储的汉字
      * @param posList:模拟发给客户端的每个元素的放置地址
      * @throws Exception
