@@ -2,7 +2,9 @@ package com.example.chinesegamevol2;
 
 import com.example.chinesegamevol2.client.GameClient;
 import com.example.chinesegamevol2.client.dto.MatchResult;
-import com.example.chinesegamevol2.contract.SendDataToClientResponse;
+import com.example.chinesegamevol2.contract.senddata.SendDataToClientRequest;
+import com.example.chinesegamevol2.contract.validate.ValidateMatchResultRequest;
+import com.example.chinesegamevol2.contract.validate.ValidateMatchResultResponse;
 import com.example.chinesegamevol2.server.GameServer;
 import com.example.chinesegamevol2.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -63,23 +65,25 @@ public class TestCase {
      * @throws Exception
      */
     public void testProcedure(String chineseList, int[][] posList) throws Exception {
-        GameServer server = new GameServer();
+        GameServer server = new GameServer(chineseList);
         GameClient client = new GameClient(3, 3);
-        //step1、服务端输出接口，服务端下发数据结构给前端
-        SendDataToClientResponse response = server.sendDataToClient(chineseList);
-        log.info(String.format("服务端下发数据结构给客户端:%s", JsonUtils.toJson(response)));
+        //step1、服务端输出接口，服务端下发数据结构给客户端
+        SendDataToClientRequest request = server.sendDataToClient();
+        log.info(String.format("服务端下发数据结构给客户端:%s", JsonUtils.toJson(request)));
         //step2、客户端接收服务端发送数据，并合并汉字
-        List<String[]> wordList = response.getWordList();
-        List<String> strokeList = response.getStrokeList();
+        List<String[]> wordList = request.getWordList();
+        List<String> strokeList = request.getStrokeList();
         for (int i = 0; i < strokeList.size(); i++) {
+            //step2、客户端接收服务端发送数据
+            client.putStrokeToBoard(posList[i][0], posList[i][1], strokeList.get(i));
+            //step3、客户端尝试合并汉字
             for (String[] word : wordList) {
-                MatchResult matchResult = client.receiveDataFromServer(
-                        posList[i][0], posList[i][1], word, 0, strokeList.get(i));
+                MatchResult matchResult = client.match(posList[i][0], posList[i][1], word, 0);
                 if (matchResult != null && StringUtils.hasLength(matchResult.getPathStr())) {
-                    //step3、服务端校验客户端的匹配结果
-                    boolean isValid = server.validateMatchResult(matchResult.getPathStr());
-                    if (isValid) {
-                        //step4、匹配成功，客户端清除匹配结果
+                    //step4、客户端合并之后，请求服务端校验客户端的匹配结果
+                    ValidateMatchResultResponse response = server.validateMatchResult(new ValidateMatchResultRequest(matchResult.getPathStr()));
+                    if (response != null && response.isSuccess()) {
+                        //step5、服务端校验通过，匹配成功，客户端清除匹配结果
                         client.clearMatchResult(matchResult.getPathNodeList());
                         break;
                     }

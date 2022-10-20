@@ -1,4 +1,4 @@
-package com.example.chinesegamevol2.contract.divideChinese;
+package com.example.chinesegamevol2.contract.dividechinese;
 
 import lombok.Data;
 

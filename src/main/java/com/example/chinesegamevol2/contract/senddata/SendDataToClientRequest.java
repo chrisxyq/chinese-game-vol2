@@ -1,4 +1,4 @@
-package com.example.chinesegamevol2.contract;
+package com.example.chinesegamevol2.contract.senddata;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SendDataToClientResponse {
+public class SendDataToClientRequest {
     /**
      * 用于客户端接收的元素列表
      * 客户端棋盘存放的是Stroke

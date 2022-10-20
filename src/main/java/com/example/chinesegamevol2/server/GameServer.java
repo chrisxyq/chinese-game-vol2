@@ -1,6 +1,8 @@
 package com.example.chinesegamevol2.server;
 
-import com.example.chinesegamevol2.contract.SendDataToClientResponse;
+import com.example.chinesegamevol2.contract.senddata.SendDataToClientRequest;
+import com.example.chinesegamevol2.contract.validate.ValidateMatchResultRequest;
+import com.example.chinesegamevol2.contract.validate.ValidateMatchResultResponse;
 import com.example.chinesegamevol2.utils.ChineseParser;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -42,18 +44,22 @@ public class GameServer {
     public Map<String, String> getStrokeToChineseMap() {
         return strokeToChineseMap;
     }
+    private String chineseList;
+
+    public GameServer(String chineseList) {
+        this.chineseList = chineseList;
+        Pair<Map<String, String[]>, Map<String, String>> pair = ChineseParser.parseChineseList(chineseList);
+        this.chineseToStrokeMap = pair.getLeft();
+        this.strokeToChineseMap = pair.getRight();
+    }
 
     /**
      * 1、服务端输出接口，服务端下发数据结构给前端
      *
-     * @param chineseList
      * @return
      * @throws Exception
      */
-    public SendDataToClientResponse sendDataToClient(String chineseList) throws Exception {
-        Pair<Map<String, String[]>, Map<String, String>> pair = ChineseParser.parseChineseList(chineseList);
-        this.chineseToStrokeMap = pair.getLeft();
-        this.strokeToChineseMap = pair.getRight();
+    public SendDataToClientRequest sendDataToClient() throws Exception {
         List<String> strokeList = new ArrayList<>();
         List<String[]> wordList = new ArrayList<>();
         for (String key : this.chineseToStrokeMap.keySet()) {
@@ -62,20 +68,23 @@ public class GameServer {
             wordList.add(subList);
         }
         Collections.reverse(strokeList);
-        return new SendDataToClientResponse(strokeList, wordList);
+        return new SendDataToClientRequest(strokeList, wordList);
     }
 
     /**
      * 服务端校验客户端的匹配结果
      * 时间复杂度o(1)
      *
-     * @param pathStr
+     * @param request
      * @return
      */
-    public boolean validateMatchResult(String pathStr) {
-        String chinese = this.strokeToChineseMap.getOrDefault(pathStr, null);
+    public ValidateMatchResultResponse validateMatchResult(ValidateMatchResultRequest request) {
+        if (request == null || request.getMatchResult() == null) {
+            return new ValidateMatchResultResponse(false, null);
+        }
+        String chinese = this.strokeToChineseMap.getOrDefault(request.getMatchResult(), null);
         boolean res = StringUtils.isNotEmpty(chinese);
         log.info(String.format("服务端校验匹配结果为:%s，匹配字符为：%s", res, chinese));
-        return res;
+        return new ValidateMatchResultResponse(res, chinese);
     }
 }

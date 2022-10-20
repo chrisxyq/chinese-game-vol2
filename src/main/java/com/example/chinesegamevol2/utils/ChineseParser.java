@@ -1,7 +1,7 @@
 package com.example.chinesegamevol2.utils;
 
-import com.example.chinesegamevol2.contract.divideChinese.DivideChineseResponse;
-import com.example.chinesegamevol2.contract.divideChinese.DivideChineseResponseData;
+import com.example.chinesegamevol2.contract.dividechinese.DivideChineseResponse;
+import com.example.chinesegamevol2.contract.dividechinese.DivideChineseResponseData;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpEntity;

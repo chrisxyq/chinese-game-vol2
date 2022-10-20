@@ -1,6 +1,5 @@
 package com.example.chinesegamevol2.client;
 
-
 import com.example.chinesegamevol2.client.dto.MatchResult;
 import com.example.chinesegamevol2.client.dto.PathNode;
 import lombok.extern.slf4j.Slf4j;
@@ -35,34 +34,42 @@ public class GameClient {
     public String[][] getBoard() {
         return board;
     }
-
     /**
      * 客户端逐个接收服务端发送的 Stroke
      *
      * @param i：Stroke           要放置的行
      * @param j：Stroke           要放置的列
-     * @param word：当前要匹配的目标汉字
-     * @param p：当前遍历到目标字符串的第几个字符
-     * @param node：当前要放置的        Stroke
+     * @param stroke：当前要放置的        Stroke
      * @return
      */
-    public MatchResult receiveDataFromServer(int i, int j, String[] word, int p, String node) {
-        log.info(String.format("客户端接收数据:%s，放置到第%s行，第%s列", node, i + 1, j + 1));
+    public void putStrokeToBoard(int i, int j,  String stroke) {
+        log.info(String.format("客户端接收数据:%s，放置到第%s行，第%s列", stroke, i + 1, j + 1));
         //先把当前要放置的 StrokeNode节点放到客户端棋盘上
-        board[i][j] = node;
+        board[i][j] = stroke;
+    }
+    /**
+     * 客户端尝试匹配中文字chinese
+     *
+     * @param i：Stroke           要放置的行
+     * @param j：Stroke           要放置的列
+     * @param chinese：当前要匹配的目标汉字
+     * @param p：当前遍历到目标字符串的第几个字符
+     * @return
+     */
+    public MatchResult match(int i, int j, String[] chinese, int p) {
         //dfs遍历看是否能找到匹配成word的可行的路径，并将路径存放到 pathNodeList
-        boolean res = dfs(i, j, word, p);
+        boolean res = dfs(i, j, chinese, p);
         StringBuilder pathStr = new StringBuilder();
         if (res) {
-            pathStr = getPathStrFromNodeList();
-            log.info(String.format("客户端接收数据:%s,找到合并汉字,匹配结果：%s", node, pathStr));
+            pathStr = getStrFromPath();
+            log.info(String.format("客户端找到合并汉字,匹配结果：%s",  pathStr));
         } else {
-            log.info(String.format("客户端接收数据:%s,未找到合并汉字,待匹配汉字：%s", node, Arrays.toString(word)));
+            log.info(String.format("客户端未找到合并汉字,待匹配汉字：%s",  Arrays.toString(chinese)));
         }
         return new MatchResult(pathNodeList, pathStr.toString());
     }
 
-    private StringBuilder getPathStrFromNodeList() {
+    private StringBuilder getStrFromPath() {
         StringBuilder pathStr = new StringBuilder();
         /**
          * 由于字体从按照上下左右的顺序写
